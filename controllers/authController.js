@@ -23,7 +23,7 @@ const createUserToken = async(user, code, req, res) => {
         expires: d, 
         httpOnly: true,
         secure: req.secure || req.headers['x-forwarded-proto'] === 'https', 
-        sameSite: 'none'
+        sameSite: 'strict'
     });
 
     //remove user password from output
@@ -80,11 +80,13 @@ exports.checkUser = catchAsync(async(req, res, next) => {
         const token = req.cookies.jwt;
         const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
         currentUser = await User.findById(decoded.id);
+        //remove user password from output
+        currentUser.password = undefined;
       } else {
         currentUser =  null;
-      }    
+      }
 
-      res.status(200).send({ currentUser });
+    res.status(200).send({ currentUser });
 });
 
 //log user out 
